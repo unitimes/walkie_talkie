@@ -1,0 +1,1 @@
+c:\users\cob\documents\visual studio 2013\Projects\WalkieTalkie\WalkieTalkie\bin\Debug\WalkieTalkie.exe.config
