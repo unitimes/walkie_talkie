@@ -29,6 +29,14 @@
         private void InitializeComponent()
         {
             this.lpl_ip = new System.Windows.Forms.Label();
+            this.lbl_rev_port = new System.Windows.Forms.Label();
+            this.lbl_sed_port = new System.Windows.Forms.Label();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.textBox2 = new System.Windows.Forms.TextBox();
+            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.btn_cnt = new System.Windows.Forms.Button();
+            this.btn_dcnt = new System.Windows.Forms.Button();
+            this.btn_spk = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // lpl_ip
@@ -40,11 +48,85 @@
             this.lpl_ip.TabIndex = 0;
             this.lpl_ip.Text = "상대방 IP";
             // 
+            // lbl_rev_port
+            // 
+            this.lbl_rev_port.AutoSize = true;
+            this.lbl_rev_port.Location = new System.Drawing.Point(12, 45);
+            this.lbl_rev_port.Name = "lbl_rev_port";
+            this.lbl_rev_port.Size = new System.Drawing.Size(57, 12);
+            this.lbl_rev_port.TabIndex = 1;
+            this.lbl_rev_port.Text = "수신 포트";
+            // 
+            // lbl_sed_port
+            // 
+            this.lbl_sed_port.AutoSize = true;
+            this.lbl_sed_port.Location = new System.Drawing.Point(12, 83);
+            this.lbl_sed_port.Name = "lbl_sed_port";
+            this.lbl_sed_port.Size = new System.Drawing.Size(57, 12);
+            this.lbl_sed_port.TabIndex = 2;
+            this.lbl_sed_port.Text = "송신 포트";
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(84, 9);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(178, 21);
+            this.textBox1.TabIndex = 3;
+            // 
+            // textBox2
+            // 
+            this.textBox2.Location = new System.Drawing.Point(162, 42);
+            this.textBox2.Name = "textBox2";
+            this.textBox2.Size = new System.Drawing.Size(100, 21);
+            this.textBox2.TabIndex = 4;
+            // 
+            // textBox3
+            // 
+            this.textBox3.Location = new System.Drawing.Point(162, 80);
+            this.textBox3.Name = "textBox3";
+            this.textBox3.Size = new System.Drawing.Size(100, 21);
+            this.textBox3.TabIndex = 5;
+            // 
+            // btn_cnt
+            // 
+            this.btn_cnt.Location = new System.Drawing.Point(24, 132);
+            this.btn_cnt.Name = "btn_cnt";
+            this.btn_cnt.Size = new System.Drawing.Size(75, 23);
+            this.btn_cnt.TabIndex = 6;
+            this.btn_cnt.Text = "Connect";
+            this.btn_cnt.UseVisualStyleBackColor = true;
+            // 
+            // btn_dcnt
+            // 
+            this.btn_dcnt.Location = new System.Drawing.Point(105, 132);
+            this.btn_dcnt.Name = "btn_dcnt";
+            this.btn_dcnt.Size = new System.Drawing.Size(99, 23);
+            this.btn_dcnt.TabIndex = 7;
+            this.btn_dcnt.Text = "Disconnect";
+            this.btn_dcnt.UseVisualStyleBackColor = true;
+            // 
+            // btn_spk
+            // 
+            this.btn_spk.Location = new System.Drawing.Point(24, 162);
+            this.btn_spk.Name = "btn_spk";
+            this.btn_spk.Size = new System.Drawing.Size(238, 88);
+            this.btn_spk.TabIndex = 8;
+            this.btn_spk.Text = "Speaking";
+            this.btn_spk.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(353, 262);
+            this.ClientSize = new System.Drawing.Size(274, 262);
+            this.Controls.Add(this.btn_spk);
+            this.Controls.Add(this.btn_dcnt);
+            this.Controls.Add(this.btn_cnt);
+            this.Controls.Add(this.textBox3);
+            this.Controls.Add(this.textBox2);
+            this.Controls.Add(this.textBox1);
+            this.Controls.Add(this.lbl_sed_port);
+            this.Controls.Add(this.lbl_rev_port);
             this.Controls.Add(this.lpl_ip);
             this.Name = "Form1";
             this.Text = "Form1";
@@ -56,6 +138,14 @@
         #endregion
 
         private System.Windows.Forms.Label lpl_ip;
+        private System.Windows.Forms.Label lbl_rev_port;
+        private System.Windows.Forms.Label lbl_sed_port;
+        private System.Windows.Forms.TextBox textBox1;
+        private System.Windows.Forms.TextBox textBox2;
+        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.Button btn_cnt;
+        private System.Windows.Forms.Button btn_dcnt;
+        private System.Windows.Forms.Button btn_spk;
     }
 }
 
