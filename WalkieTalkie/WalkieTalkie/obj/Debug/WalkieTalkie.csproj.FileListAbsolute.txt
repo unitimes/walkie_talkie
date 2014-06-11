@@ -1,1 +1,9 @@
 c:\users\cob\documents\visual studio 2013\Projects\WalkieTalkie\WalkieTalkie\bin\Debug\WalkieTalkie.exe.config
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\bin\Debug\WalkieTalkie.exe.config
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\bin\Debug\WalkieTalkie.exe
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\bin\Debug\WalkieTalkie.pdb
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\obj\Debug\WalkieTalkie.Form1.resources
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\obj\Debug\WalkieTalkie.Properties.Resources.resources
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\obj\Debug\WalkieTalkie.csproj.GenerateResource.Cache
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\obj\Debug\WalkieTalkie.exe
+C:\Users\cob\Documents\Visual Studio 2013\Projects\github\walkie\WalkieTalkie\WalkieTalkie\obj\Debug\WalkieTalkie.pdb

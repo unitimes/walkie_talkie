@@ -37,6 +37,8 @@
             this.btn_cnt = new System.Windows.Forms.Button();
             this.btn_dcnt = new System.Windows.Forms.Button();
             this.btn_spk = new System.Windows.Forms.Button();
+            this.lbl_test = new System.Windows.Forms.Label();
+            this.textBox4 = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // lpl_ip
@@ -95,6 +97,7 @@
             this.btn_cnt.TabIndex = 6;
             this.btn_cnt.Text = "Connect";
             this.btn_cnt.UseVisualStyleBackColor = true;
+            this.btn_cnt.Click += new System.EventHandler(this.btn_cnt_Click);
             // 
             // btn_dcnt
             // 
@@ -104,6 +107,7 @@
             this.btn_dcnt.TabIndex = 7;
             this.btn_dcnt.Text = "Disconnect";
             this.btn_dcnt.UseVisualStyleBackColor = true;
+            this.btn_dcnt.Click += new System.EventHandler(this.btn_dcnt_Click);
             // 
             // btn_spk
             // 
@@ -114,11 +118,30 @@
             this.btn_spk.Text = "Speaking";
             this.btn_spk.UseVisualStyleBackColor = true;
             // 
+            // lbl_test
+            // 
+            this.lbl_test.AutoSize = true;
+            this.lbl_test.Location = new System.Drawing.Point(12, 842);
+            this.lbl_test.Name = "lbl_test";
+            this.lbl_test.Size = new System.Drawing.Size(81, 12);
+            this.lbl_test.TabIndex = 9;
+            this.lbl_test.Text = "disconnected";
+            // 
+            // textBox4
+            // 
+            this.textBox4.Location = new System.Drawing.Point(14, 256);
+            this.textBox4.Multiline = true;
+            this.textBox4.Name = "textBox4";
+            this.textBox4.Size = new System.Drawing.Size(251, 583);
+            this.textBox4.TabIndex = 10;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(274, 262);
+            this.ClientSize = new System.Drawing.Size(277, 863);
+            this.Controls.Add(this.textBox4);
+            this.Controls.Add(this.lbl_test);
             this.Controls.Add(this.btn_spk);
             this.Controls.Add(this.btn_dcnt);
             this.Controls.Add(this.btn_cnt);
@@ -130,6 +153,7 @@
             this.Controls.Add(this.lpl_ip);
             this.Name = "Form1";
             this.Text = "Form1";
+            this.Closing += new System.ComponentModel.CancelEventHandler(this.Form1_Closing_1);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -146,6 +170,8 @@
         private System.Windows.Forms.Button btn_cnt;
         private System.Windows.Forms.Button btn_dcnt;
         private System.Windows.Forms.Button btn_spk;
+        private System.Windows.Forms.Label lbl_test;
+        private System.Windows.Forms.TextBox textBox4;
     }
 }
 
