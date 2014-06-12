@@ -37,8 +37,9 @@
             this.btn_cnt = new System.Windows.Forms.Button();
             this.btn_dcnt = new System.Windows.Forms.Button();
             this.btn_spk = new System.Windows.Forms.Button();
+            this.textBox5 = new System.Windows.Forms.TextBox();
+            this.textBox6 = new System.Windows.Forms.TextBox();
             this.lbl_test = new System.Windows.Forms.Label();
-            this.textBox4 = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // lpl_ip
@@ -70,24 +71,27 @@
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(84, 9);
+            this.textBox1.Location = new System.Drawing.Point(84, 12);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(178, 21);
             this.textBox1.TabIndex = 3;
+            this.textBox1.Text = "10.73.43.229";
             // 
             // textBox2
             // 
-            this.textBox2.Location = new System.Drawing.Point(162, 42);
+            this.textBox2.Location = new System.Drawing.Point(84, 42);
             this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(100, 21);
+            this.textBox2.Size = new System.Drawing.Size(78, 21);
             this.textBox2.TabIndex = 4;
+            this.textBox2.Text = "3000";
             // 
             // textBox3
             // 
-            this.textBox3.Location = new System.Drawing.Point(162, 80);
+            this.textBox3.Location = new System.Drawing.Point(84, 80);
             this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(100, 21);
+            this.textBox3.Size = new System.Drawing.Size(78, 21);
             this.textBox3.TabIndex = 5;
+            this.textBox3.Text = "4000";
             // 
             // btn_cnt
             // 
@@ -117,31 +121,42 @@
             this.btn_spk.TabIndex = 8;
             this.btn_spk.Text = "Speaking";
             this.btn_spk.UseVisualStyleBackColor = true;
+            this.btn_spk.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btn_spk_MouseDown);
+            this.btn_spk.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btn_spk_MouseUp);
+            // 
+            // textBox5
+            // 
+            this.textBox5.Location = new System.Drawing.Point(169, 42);
+            this.textBox5.Name = "textBox5";
+            this.textBox5.Size = new System.Drawing.Size(93, 21);
+            this.textBox5.TabIndex = 11;
+            this.textBox5.Text = "5000";
+            // 
+            // textBox6
+            // 
+            this.textBox6.Location = new System.Drawing.Point(169, 80);
+            this.textBox6.Name = "textBox6";
+            this.textBox6.Size = new System.Drawing.Size(93, 21);
+            this.textBox6.TabIndex = 12;
+            this.textBox6.Text = "6000";
             // 
             // lbl_test
             // 
             this.lbl_test.AutoSize = true;
-            this.lbl_test.Location = new System.Drawing.Point(12, 842);
+            this.lbl_test.Location = new System.Drawing.Point(13, 255);
             this.lbl_test.Name = "lbl_test";
-            this.lbl_test.Size = new System.Drawing.Size(81, 12);
-            this.lbl_test.TabIndex = 9;
-            this.lbl_test.Text = "disconnected";
-            // 
-            // textBox4
-            // 
-            this.textBox4.Location = new System.Drawing.Point(14, 256);
-            this.textBox4.Multiline = true;
-            this.textBox4.Name = "textBox4";
-            this.textBox4.Size = new System.Drawing.Size(251, 583);
-            this.textBox4.TabIndex = 10;
+            this.lbl_test.Size = new System.Drawing.Size(38, 12);
+            this.lbl_test.TabIndex = 13;
+            this.lbl_test.Text = "label1";
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(277, 863);
-            this.Controls.Add(this.textBox4);
+            this.ClientSize = new System.Drawing.Size(277, 393);
             this.Controls.Add(this.lbl_test);
+            this.Controls.Add(this.textBox6);
+            this.Controls.Add(this.textBox5);
             this.Controls.Add(this.btn_spk);
             this.Controls.Add(this.btn_dcnt);
             this.Controls.Add(this.btn_cnt);
@@ -170,8 +185,9 @@
         private System.Windows.Forms.Button btn_cnt;
         private System.Windows.Forms.Button btn_dcnt;
         private System.Windows.Forms.Button btn_spk;
+        private System.Windows.Forms.TextBox textBox5;
+        private System.Windows.Forms.TextBox textBox6;
         private System.Windows.Forms.Label lbl_test;
-        private System.Windows.Forms.TextBox textBox4;
     }
 }
 

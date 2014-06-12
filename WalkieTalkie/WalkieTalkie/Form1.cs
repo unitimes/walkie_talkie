@@ -20,33 +20,100 @@ namespace WalkieTalkie
     public partial class Form1 : Form
     {
         private bool connected = false;
-        private Socket s;
+        private Socket v;               //음성 통신을 위한 소켓
+        private Socket s;               //데이터를 주고 받기 위한 소켓
         private Thread t;
+        private Thread t_D;             //데이터 통신을 위한 쓰레드
         private FifoStream m_Fifo = new FifoStream();
         private WaveOutPlayer m_Player;
         private WaveInRecorder m_Recorder;
+        private bool mouse_SFlag = true;
+        private bool send_VFlag = false;
+        private byte send_Signal = 0;
 
         private byte[] m_PlayBuffer;
         private byte[] m_RecBuffer;
+
+        delegate void SetTextCallback(string text);
+
         public Form1()
         {
             InitializeComponent();
-            s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            t = new Thread(new ThreadStart(Voice_In));
+        }
+        private void ShowLabel(string msg)
+        {
+            if (this.lbl_test.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(ShowLabel);
+                this.Invoke(d, new object[] { msg });
+            }
+            else
+            {
+                if (msg.Equals("OK"))
+                {
+                    mouse_SFlag = true;
+                }
+                else if (msg.Equals("NO"))
+                    mouse_SFlag = false;
+                this.lbl_test.Text = msg;
+            }
+        }
+
+        private void btn_spk_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (mouse_SFlag)
+            {
+                send_Signal = 1;
+                send_VFlag = true;
+
+                byte[] b;
+                b = new byte[1];
+                b[0] = send_Signal;
+                s.SendTo(b, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox6.Text)));
+            }
+        }
+
+        private void btn_spk_MouseUp(object sender, MouseEventArgs e)
+        {
+            //if (mouse_SFlag)
+            //{
+            //    send_Signal = 0;
+            //    send_VFlag = false;
+
+            //    byte[] b;
+            //    b = new byte[1];
+            //    b[0] = send_Signal;
+            //    s.SendTo(b, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox6.Text)));
+            //}
+        }
+        private void Data_Comm()
+        {
+            byte[] b;
+            s.Bind(new IPEndPoint(IPAddress.Any, int.Parse(this.textBox5.Text)));
+            while (true)
+            {
+                b = new byte[1];
+                s.Receive(b);
+                if (b[0] == 1)
+                    ShowLabel("NO");
+                else if (b[0] == 0)
+                    ShowLabel("OK");
+            }
         }
 
         private void Voice_In()
         {
-            byte[] b;          //한번에 소켓 통신에서 읽어올 데이터의 크기
-            s.Bind(new IPEndPoint(IPAddress.Any, int.Parse(this.textBox2.Text)));
+            byte[] b;           //한번에 음성 소켓 통신에서 읽어올 데이터의 크기
+            v.Bind(new IPEndPoint(IPAddress.Any, int.Parse(this.textBox2.Text)));
             //thread로 계속 통신을 위해
-            while(true)
+            while (true)
             {
+                //음성 통신용 소켓 리시브
                 b = new byte[16384];
-                s.Receive(b);
-                textBox4.Text += Encoding.ASCII.GetString(b, 0, b.Length) + Environment.NewLine;
-
-                //m_Fifo.Write(b, 0, b.Length);
+                //버퍼가 채워지지 않으면 완료 되지 않음
+                //즉 아래 줄 실행되지 않음
+                v.Receive(b);
+                m_Fifo.Write(b, 0, b.Length);
             }
         }
 
@@ -55,32 +122,52 @@ namespace WalkieTalkie
         {
             //버퍼가 size보다 작거나 버퍼가 초기화되지 않았을때 버퍼 생성
             if (m_RecBuffer == null || m_RecBuffer.Length < size)
-                m_RecBuffer = new byte[size + 4];
+                m_RecBuffer = new byte[size];
             System.Runtime.InteropServices.Marshal.Copy(data, m_RecBuffer, 0, size);
             int b_Size = m_RecBuffer.Length;
-            for (int i = b_Size - 4; i < b_Size; i++)
+            v.SendTo(m_RecBuffer, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox3.Text)));
+
+            while (send_VFlag)
             {
-                m_RecBuffer[i] = 97;
+                //v.SendTo(m_RecBuffer, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox3.Text)));
             }
-            s.SendTo(m_RecBuffer, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox3.Text)));
         }
 
         //connect 버튼 클릭시 이벤트
         private void btn_cnt_Click(object sender, EventArgs e)
         {
+            v = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
+            t = new Thread(new ThreadStart(Voice_In));
+            t_D = new Thread(new ThreadStart(Data_Comm));
             if (connected == false)
             {
                 t.Start();
+                t_D.Start();
                 connected = true;
+                //lbl_test.Text = "Connecting";
             }
             Start();
         }
 
         private void btn_dcnt_Click(object sender, EventArgs e)
         {
-            Stop();
-            s.Shutdown(SocketShutdown.Both);        //작업을 마무리하고 보내기 받기 사용 불가
-            s.Disconnect(true);                     //소켓 연결을 닫고 다시 사용할 수 있도록(true)인 경우
+            if (connected == true)
+            {
+                Stop();
+                t.Abort();
+                t_D.Abort();
+                lbl_test.Text = "t stop";
+                v.Close();
+                s.Close();
+                lbl_test.Text = "s stop";
+                connected = false;
+                mouse_SFlag = true;
+                send_VFlag = false;
+                send_Signal = 0;
+            }
+            //v.Shutdown(SocketShutdown.Both);        //작업을 마무리하고 보내기 받기 사용 불가
+            //v.Disconnect(true);                     //소켓 연결을 닫고 다시 사용할 수 있도록(true)인 경우
         }
         private void Start()
         {
@@ -134,9 +221,14 @@ namespace WalkieTalkie
         }
         private void Form1_Closing_1(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            t.Abort();
-            s.Close();
-            Stop();
+            if (connected == true)
+            {
+                Stop();
+                t.Abort();
+                t_D.Abort();
+                v.Close();
+                s.Close();
+            }
         }
     }
     public class FifoStream : Stream
@@ -152,14 +244,14 @@ namespace WalkieTalkie
 
         public override void Write(byte[] buffer, int offset, int count)            //(쓸 데이터가 들어있는 버퍼, 버퍼내의 쓸 데이터의 첫번째 인덱스, 총 쓸 데이터)
         {
-            lock(this)
+            lock (this)
             {
                 int left = count;           //write할 data의 크기, byte 단위
-                while(left > 0)             //write할 buffter가 남아있으면
+                while (left > 0)             //write할 buffter가 남아있으면
                 {
                     int toWrite = Math.Min(BlockSize - m_WPos, left);                           //한 번에 쓸 데이터의 크기 byte 단위
                     Array.Copy(buffer, offset + count - left, GetWBlock(), m_WPos, toWrite);    //(쓸 데이터가 들어있는 버퍼, 버퍼내의 쓸 데이터의 첫번째 인덱스,
-                                                                                                // 데이터를 쓸 블럭, 블럭내 첫번째 쓸 인덱스, 한번에 쓸 크기)
+                    // 데이터를 쓸 블럭, 블럭내 첫번째 쓸 인덱스, 한번에 쓸 크기)
                     m_WPos += toWrite;
                     left -= toWrite;
                 }
@@ -193,7 +285,7 @@ namespace WalkieTalkie
 
         public override int Read(byte[] buffer, int offset, int count)
         {
-            lock(this)
+            lock (this)
             {
                 int result = Peek(buffer, offset, count);
                 Advance(result);
@@ -202,7 +294,7 @@ namespace WalkieTalkie
         }
         public int Peek(byte[] buffer, int offset, int count)
         {
-            lock(this)
+            lock (this)
             {
                 int sizeLeft = count;
                 int tempBlockPos = m_RPos;
@@ -229,10 +321,10 @@ namespace WalkieTalkie
         }
         public int Advance(int count)
         {
-            lock(this)
+            lock (this)
             {
                 int sizeLeft = count;
-                while(sizeLeft > 0 && m_Size > 0)
+                while (sizeLeft > 0 && m_Size > 0)
                 {
                     if (m_RPos == BlockSize)
                     {
@@ -249,7 +341,7 @@ namespace WalkieTalkie
         }
         public override void Flush()
         {
-            lock(this)
+            lock (this)
             {
                 m_Blocks.Clear();
                 m_RPos = 0;
