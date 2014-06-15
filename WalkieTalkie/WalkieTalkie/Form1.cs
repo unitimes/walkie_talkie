@@ -13,201 +13,207 @@ using System.Threading;
 using System.IO;
 using System.Collections;
 using Voice;
+using System.Net.NetworkInformation;
 
 
 namespace WalkieTalkie
 {
     public partial class Form1 : Form
     {
-        private bool connected = false;
-        private Socket v;               //음성 통신을 위한 소켓
-        private Socket s;               //데이터를 주고 받기 위한 소켓
-        private Thread t;
-        private Thread t_D;             //데이터 통신을 위한 쓰레드
-        private FifoStream m_Fifo = new FifoStream();
-        private WaveOutPlayer m_Player;
-        private WaveInRecorder m_Recorder;
-        private bool mouse_SFlag = true;
-        private bool send_VFlag = false;
-        private byte send_Signal = 0;
+        private UdpClient udpVoice;                 //음성을 주고 받기 위한
+        private UdpClient udpData;                  //데이터를 주고 받기 위한
+        private FifoStream m_Fifo;                  
+        private WaveOutPlayer wavePlayer;
+        private WaveInRecorder waveRecorder;
+        private bool voiceFlag = false;
+        private IPEndPoint tempIP;
+        private IPEndPoint targetDataIP;
+        private IPEndPoint targetVoiceIP;
 
         private byte[] m_PlayBuffer;
         private byte[] m_RecBuffer;
 
+        //스레드에서 gui 통제
         delegate void SetTextCallback(string text);
+        delegate void SetBoolCallback(int val);
 
         public Form1()
         {
             InitializeComponent();
+            Init();
         }
-        private void ShowLabel(string msg)
+        private void Init()
         {
-            if (this.lbl_test.InvokeRequired)
+            SetBtn(0);
+            m_Fifo = new FifoStream();
+            //데이터 통신을 위한 udpclient 생성
+            udpData = new UdpClient(3000);
+            //데이터 비동기 수신 대기
+            OnReceiveData();
+        }
+        private void InitUdpVoice()
+        {
+            //음성 통신을 위한 udpclient 생성
+            udpVoice = new UdpClient(2000);
+        }
+        private void InitCall()
+        {
+            ShowStatus("연결 완료");
+            SetBtn(1);
+            //원격 연결점 생성
+            targetDataIP = tempIP;
+            targetVoiceIP = new IPEndPoint(tempIP.Address, 2000);
+
+            WaveFormat fmt = new WaveFormat(44100, 16, 2);
+            wavePlayer = new WaveOutPlayer(-1, fmt, 16384, 3, new BufferFillEventHandler(Filler));
+            waveRecorder = new WaveInRecorder(-1, fmt, 16384, 3, new BufferDoneEventHandler(Voice_Out));
+            //음성 비동기 수신 대기
+            udpVoice.BeginReceive(new AsyncCallback(ReceiveVoiceCallback), udpVoice);
+        }
+        //가용 버튼 등 설정을 위한 메서드
+        private void SetBtn(int val)
+        {
+            if (this.btn_cnt.InvokeRequired)
             {
-                SetTextCallback d = new SetTextCallback(ShowLabel);
+                SetBoolCallback d = new SetBoolCallback(SetBtn);
+                this.Invoke(d, new object[] { val });
+            }
+            else
+            {
+                switch (val)
+                {
+                    case 0:
+                        {
+                            checkBox1.Enabled = false;
+                            btn_dcnt.Enabled = false;
+                            btn_cnt.Enabled = true;
+                            checkBox1.Checked = false;
+                            voiceFlag = false;
+                            break;
+                        }
+                    case 1:
+                        {
+                            btn_cnt.Enabled = false;
+                            btn_dcnt.Enabled = true;
+                            checkBox1.Enabled = true;
+                            break;
+                        }
+                    case 2:
+                        {
+                            checkBox1.Enabled = false;
+                            voiceFlag = true;
+                            break;
+                        }
+                    case 3:
+                        {
+                            checkBox1.Enabled = true;
+                            voiceFlag = false;
+                            break;
+                        }
+                }
+            }
+        }
+
+        //라벨에 통신 상태를 표시
+        private void ShowStatus(string msg)
+        {
+            if (this.lbl_status.InvokeRequired)
+            {
+                SetTextCallback d = new SetTextCallback(ShowStatus);
                 this.Invoke(d, new object[] { msg });
             }
             else
             {
-                if (msg.Equals("OK"))
-                {
-                    mouse_SFlag = true;
-                }
-                else if (msg.Equals("NO"))
-                    mouse_SFlag = false;
-                this.lbl_test.Text = msg;
+                this.lbl_status.Text = msg;
             }
         }
 
-        private void btn_spk_MouseDown(object sender, MouseEventArgs e)
+        //데이터 비동기 수신 대기
+        private void OnReceiveData()
         {
-            if (mouse_SFlag)
-            {
-                send_Signal = 1;
-                send_VFlag = true;
-
-                byte[] b;
-                b = new byte[1];
-                b[0] = send_Signal;
-                s.SendTo(b, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox6.Text)));
-            }
+            udpData.BeginReceive(new AsyncCallback(ReceiveDataCallback), udpData);
         }
 
-        private void btn_spk_MouseUp(object sender, MouseEventArgs e)
+        private void ReceiveDataCallback(IAsyncResult ar)
         {
-            //if (mouse_SFlag)
-            //{
-            //    send_Signal = 0;
-            //    send_VFlag = false;
-
-            //    byte[] b;
-            //    b = new byte[1];
-            //    b[0] = send_Signal;
-            //    s.SendTo(b, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox6.Text)));
-            //}
-        }
-        private void Data_Comm()
-        {
-            byte[] b;
-            s.Bind(new IPEndPoint(IPAddress.Any, int.Parse(this.textBox5.Text)));
-            while (true)
-            {
-                b = new byte[1];
-                s.Receive(b);
-                if (b[0] == 1)
-                    ShowLabel("NO");
-                else if (b[0] == 0)
-                    ShowLabel("OK");
-            }
-        }
-
-        private void Voice_In()
-        {
-            byte[] b;           //한번에 음성 소켓 통신에서 읽어올 데이터의 크기
-            v.Bind(new IPEndPoint(IPAddress.Any, int.Parse(this.textBox2.Text)));
-            //thread로 계속 통신을 위해
-            while (true)
-            {
-                //음성 통신용 소켓 리시브
-                b = new byte[16384];
-                //버퍼가 채워지지 않으면 완료 되지 않음
-                //즉 아래 줄 실행되지 않음
-                v.Receive(b);
-                m_Fifo.Write(b, 0, b.Length);
-            }
-        }
-
-        //관리되지 않는 데이터(마이크로 들어온 데이터)를 버퍼에 저장
-        private void Voice_Out(IntPtr data, int size)
-        {
-            //버퍼가 size보다 작거나 버퍼가 초기화되지 않았을때 버퍼 생성
-            if (m_RecBuffer == null || m_RecBuffer.Length < size)
-                m_RecBuffer = new byte[size];
-            System.Runtime.InteropServices.Marshal.Copy(data, m_RecBuffer, 0, size);
-            int b_Size = m_RecBuffer.Length;
-            v.SendTo(m_RecBuffer, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox3.Text)));
-
-            while (send_VFlag)
-            {
-                //v.SendTo(m_RecBuffer, new IPEndPoint(IPAddress.Parse(this.textBox1.Text), int.Parse(this.textBox3.Text)));
-            }
-        }
-
-        //connect 버튼 클릭시 이벤트
-        private void btn_cnt_Click(object sender, EventArgs e)
-        {
-            v = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            s = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-            t = new Thread(new ThreadStart(Voice_In));
-            t_D = new Thread(new ThreadStart(Data_Comm));
-            if (connected == false)
-            {
-                t.Start();
-                t_D.Start();
-                connected = true;
-                //lbl_test.Text = "Connecting";
-            }
-            Start();
-        }
-
-        private void btn_dcnt_Click(object sender, EventArgs e)
-        {
-            if (connected == true)
-            {
-                Stop();
-                t.Abort();
-                t_D.Abort();
-                lbl_test.Text = "t stop";
-                v.Close();
-                s.Close();
-                lbl_test.Text = "s stop";
-                connected = false;
-                mouse_SFlag = true;
-                send_VFlag = false;
-                send_Signal = 0;
-            }
-            //v.Shutdown(SocketShutdown.Both);        //작업을 마무리하고 보내기 받기 사용 불가
-            //v.Disconnect(true);                     //소켓 연결을 닫고 다시 사용할 수 있도록(true)인 경우
-        }
-        private void Start()
-        {
-            Stop();
+            tempIP = new IPEndPoint(IPAddress.Any, 0);
             try
             {
-                WaveFormat fmt = new WaveFormat(44100, 16, 2);
-                m_Player = new WaveOutPlayer(-1, fmt, 16384, 3, new BufferFillEventHandler(Filler));
-                m_Recorder = new WaveInRecorder(-1, fmt, 16384, 3, new BufferDoneEventHandler(Voice_Out));
+                Data receiveData = new Data(udpData.EndReceive(ar, ref tempIP));
+                //데이터 cmd에 따른 분기
+                switch (receiveData.Cmd)
+                {
+                    case Command.Invite:
+                        {
+                            string temp = lbl_status.Text;
+                            ShowStatus("연결 요청 수신");
+                            if (MessageBox.Show("통신 요청을 수락하시겠습니까?",
+                                "통신 요청 알림",
+                                MessageBoxButtons.YesNo,
+                                MessageBoxIcon.None) == DialogResult.Yes)
+                            {
+                                SendData(Command.OK, tempIP);
+                                InitUdpVoice();
+                                InitCall();
+                            }
+                            else
+                            {
+                                ShowStatus(temp);
+                                SendData(Command.NO, tempIP);
+                            }
+                            break;
+                        }
+                    case Command.OK:
+                        {
+                            MessageBox.Show("통신 요청이 수락되었습니다.", "통신 연결 알림", MessageBoxButtons.OK);
+                            InitCall();
+                            break;
+                        }
+                    case Command.NO:
+                        {
+                            udpVoice.Close();
+                            break;
+                        }
+                    case Command.SpeakingOn:
+                        {
+                            SetBtn(2);
+                            break;
+                        }
+                    case Command.SpeakingOff:
+                        {
+                            SetBtn(3);
+                            break;
+                        }
+                    case Command.Close:
+                        {
+                            Stop();
+                            MessageBox.Show("상대방이 연결을 차단하였습니다.", "통신 차단 알림", MessageBoxButtons.OK);
+                            break;
+                        }
+                    default:
+                        {
+                            break;
+                        }
+                }
+                OnReceiveData();
             }
-            catch
-            {
-                Stop();
-                throw;
-            }
+            catch (Exception e) { }
         }
 
-        private void Stop()
+        private void ReceiveVoiceCallback(IAsyncResult ar)
         {
-            if (m_Player != null)
-                try
-                {
-                    m_Player.Dispose();
-                }
-                finally
-                {
-                    m_Player = null;
-                }
-            if (m_Recorder != null)
-                try
-                {
-                    m_Recorder.Dispose();
-                }
-                finally
-                {
-                    m_Recorder = null;
-                }
-            m_Fifo.Flush();
+            IPEndPoint tempIP = new IPEndPoint(IPAddress.Any, 0);
+            byte[] buf = new byte[16384];
+            try
+            {
+                buf = udpVoice.EndReceive(ar, ref tempIP);
+                if (!checkBox1.Checked && voiceFlag)
+                    m_Fifo.Write(buf, 0, buf.Length);
+                //음성 통신을 위해 지속적으로 대기
+                udpVoice.BeginReceive(new AsyncCallback(ReceiveVoiceCallback), udpVoice);
+            }
+            catch (Exception e) { }
         }
-
         private void Filler(IntPtr data, int size)
         {
             if (m_PlayBuffer == null || m_PlayBuffer.Length < size)
@@ -219,170 +225,144 @@ namespace WalkieTalkie
                     m_PlayBuffer[i] = 0;
             System.Runtime.InteropServices.Marshal.Copy(m_PlayBuffer, 0, data, size);
         }
-        private void Form1_Closing_1(object sender, System.ComponentModel.CancelEventArgs e)
+        private void Voice_Out(IntPtr data, int size)
         {
-            if (connected == true)
-            {
-                Stop();
-                t.Abort();
-                t_D.Abort();
-                v.Close();
-                s.Close();
-            }
-        }
-    }
-    public class FifoStream : Stream
-    {
-        private const int BlockSize = 65536;
-        //private const int MaxBlocksInCache = (3 * 1024 * 1024) / BlockSize;
+            //버퍼가 size보다 작거나 버퍼가 초기화되지 않았을때 버퍼 생성
+            if (m_RecBuffer == null || m_RecBuffer.Length < size)
+                m_RecBuffer = new byte[size];
 
-        private int m_Size;                                         //stream에 쓰여진 총 메모리 사이즈 byte 단위
-        private int m_RPos;                                         //단위 block 내에서 앞오로 읽시 시작할 byte의 인덱스
-        private int m_WPos;                                         //단위 block 내에서 앞으로 쓰기 시작할 byte의 인덱스
-        //private Stack m_UsedBlocks = new Stack();                   
-        private ArrayList m_Blocks = new ArrayList();               //stream에 쓰여진 data를 BlockSize단위로 나누어 저장한 ArrayList
-
-        public override void Write(byte[] buffer, int offset, int count)            //(쓸 데이터가 들어있는 버퍼, 버퍼내의 쓸 데이터의 첫번째 인덱스, 총 쓸 데이터)
-        {
-            lock (this)
+            if (checkBox1.Checked)
             {
-                int left = count;           //write할 data의 크기, byte 단위
-                while (left > 0)             //write할 buffter가 남아있으면
-                {
-                    int toWrite = Math.Min(BlockSize - m_WPos, left);                           //한 번에 쓸 데이터의 크기 byte 단위
-                    Array.Copy(buffer, offset + count - left, GetWBlock(), m_WPos, toWrite);    //(쓸 데이터가 들어있는 버퍼, 버퍼내의 쓸 데이터의 첫번째 인덱스,
-                    // 데이터를 쓸 블럭, 블럭내 첫번째 쓸 인덱스, 한번에 쓸 크기)
-                    m_WPos += toWrite;
-                    left -= toWrite;
-                }
-                m_Size += count;
+                //관리되지 않는 데이터(마이크로 들어온 데이터)를 버퍼에 저장
+                System.Runtime.InteropServices.Marshal.Copy(data, m_RecBuffer, 0, size);
             }
-            //throw new NotImplementedException();
+            int b_Size = m_RecBuffer.Length;
+            try
+            {
+                udpVoice.BeginSend(m_RecBuffer, m_RecBuffer.Length, targetVoiceIP, new AsyncCallback(SendVoiceCallback), udpVoice);
+            }
+            catch (Exception e) { }
         }
-        //제일 마지막 블럭을 불러오거나 쓰기할 공간이 없을때 새로운 블록을 추가하여 리턴
-        private byte[] GetWBlock()
+        private void SendVoiceCallback(IAsyncResult ar)
         {
-            byte[] result = null;
-            if (m_WPos < BlockSize && m_Blocks.Count > 0)
-                result = (byte[])m_Blocks[m_Blocks.Count - 1];
-            //m_Blocks에 엘리먼트가 하나도 없을때 혹은 m_WPos가 BlockSize보다 클 때
+            udpVoice.EndSend(ar);
+        }
+        //스피킹 버튼 이벤트 처리
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            Command cmd;
+            if (checkBox1.Checked)
+            {
+                cmd = Command.SpeakingOn;
+            }
             else
             {
-                result = AllocBlock();
-                m_Blocks.Add(result);
-                m_WPos = 0;
+                cmd = Command.SpeakingOff;
             }
-            return result;
+            SendData(cmd, targetDataIP);
         }
-        //쓰기에 사용할 블록을 할당
-        private byte[] AllocBlock()
+        //connect 버튼 클릭시 이벤트
+        private void btn_cnt_Click(object sender, EventArgs e)
         {
-            byte[] result = null;
-            //result = m_UsedBlocks.Count > 0 ? (byte[])m_UsedBlocks.Pop() : new byte[BlockSize];
-            result = new byte[BlockSize];
-            return result;
+            ShowStatus("연결중");
+            SendData(Command.Invite, new IPEndPoint(IPAddress.Parse(tBoxIP.Text), 3000));
+            InitUdpVoice();
+            btn_cnt.Enabled = false;
+            btn_dcnt.Enabled = true;
+        }
+        //disconnect 버튼 클릭시 이벤트
+        private void btn_dcnt_Click(object sender, EventArgs e)
+        {
+            if (targetDataIP != null)
+            {
+                SendData(Command.Close, targetDataIP);
+            }
+            else
+            {
+                Stop();
+            }
+        }
+        //창을 닫을 때의 이벤트
+        private void Form1_Closing_1(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            SendData(Command.Close, targetDataIP);
+        }
+        //데이터 송신
+        private void SendData(Command cmd, IPEndPoint receiverIp)
+        {
+            byte[] byteBuf;
+            Data sendData;
+            Command returnCmd = cmd;
+
+            sendData = new Data();
+            sendData.Cmd = cmd;
+            byteBuf = new byte[4];
+            byteBuf = sendData.ToByte();
+            try
+            {
+                udpData.BeginSend(byteBuf, byteBuf.Length, receiverIp, new AsyncCallback(SendDataCallback), returnCmd);
+            }
+            catch (Exception e) { }
+        }
+        private void SendDataCallback(IAsyncResult ar)
+        {
+            Command temp = (Command)ar.AsyncState;
+            udpData.EndSend(ar);
+            if((Command)ar.AsyncState == Command.Close)
+            {
+                Stop();
+            }
         }
 
-        public override int Read(byte[] buffer, int offset, int count)
+        private void Stop()
         {
-            lock (this)
+            udpData.Close();
+            udpVoice.Close();
+            BufferClear();
+            tempIP = null;
+            targetDataIP = null;
+            targetVoiceIP = null;
+            IPGlobalProperties prop = IPGlobalProperties.GetIPGlobalProperties();
+            IPEndPoint[] ips = prop.GetActiveUdpListeners();
+            bool flag = true;
+            // 포트 반환을 기다림
+            while (flag)
             {
-                int result = Peek(buffer, offset, count);
-                Advance(result);
-                return result;
+                int check = 0;
+                foreach (IPEndPoint ip in ips)
+                {
+                    if (ip.Port == 3000 || ip.Port == 2000)
+                        check++;
+                }
+                if (check == 0)
+                    flag = false;
             }
+            Init();
+            SetBtn(0);
+            ShowStatus("Connection Status");
         }
-        public int Peek(byte[] buffer, int offset, int count)
-        {
-            lock (this)
-            {
-                int sizeLeft = count;
-                int tempBlockPos = m_RPos;
-                int tempSize = m_Size;
 
-                int CurrentBlock = 0;
-                while (sizeLeft > 0 && tempSize > 0)
+        private void BufferClear()
+        {
+            if (wavePlayer != null)
+                try
                 {
-                    if (tempBlockPos == BlockSize)
-                    //if (tempBlockPos >= BlockSize)
-                    {
-                        tempBlockPos = 0;
-                        CurrentBlock++;
-                    }
-                    int upper = CurrentBlock < m_Blocks.Count - 1 ? BlockSize : m_WPos;
-                    int toFeed = Math.Min(upper - tempBlockPos, sizeLeft);
-                    Array.Copy((byte[])m_Blocks[CurrentBlock], tempBlockPos, buffer, offset + count - sizeLeft, toFeed);
-                    sizeLeft -= toFeed;
-                    tempBlockPos += toFeed;
-                    tempSize -= toFeed;
+                    wavePlayer.Dispose();
                 }
-                return count - sizeLeft;
-            }
-        }
-        public int Advance(int count)
-        {
-            lock (this)
-            {
-                int sizeLeft = count;
-                while (sizeLeft > 0 && m_Size > 0)
+                finally
                 {
-                    if (m_RPos == BlockSize)
-                    {
-                        m_RPos = 0;
-                        m_Blocks.RemoveAt(0);
-                    }
-                    int toFeed = m_Blocks.Count == 1 ? Math.Min(m_WPos - m_RPos, sizeLeft) : Math.Min(BlockSize - m_RPos, sizeLeft);
-                    m_RPos += toFeed;
-                    sizeLeft -= toFeed;
-                    m_Size -= toFeed;
+                    wavePlayer = null;
                 }
-                return count - sizeLeft;
-            }
-        }
-        public override void Flush()
-        {
-            lock (this)
-            {
-                m_Blocks.Clear();
-                m_RPos = 0;
-            }
-        }
-        public override bool CanRead
-        {
-            get { return true; }
-        }
-        public override bool CanSeek
-        {
-            get { return false; }
-        }
-        public override bool CanWrite
-        {
-            get { return true; }
-        }
-        public override long Length
-        {
-            get
-            {
-                lock (this)
-                    return m_Size;
-            }
-        }
-        public override long Position
-        {
-            get { throw new InvalidOperationException(); }
-            set { throw new InvalidOperationException(); }
-        }
-        public override void Close()
-        {
-            Flush();
-        }
-        public override void SetLength(long len)
-        {
-            throw new InvalidOperationException();
-        }
-        public override long Seek(long pos, SeekOrigin o)
-        {
-            throw new InvalidOperationException();
+            if (waveRecorder != null)
+                try
+                {
+                    waveRecorder.Dispose();
+                }
+                finally
+                {
+                    waveRecorder = null;
+                }
+            m_Fifo.Flush();
         }
     }
 }

@@ -29,17 +29,11 @@
         private void InitializeComponent()
         {
             this.lpl_ip = new System.Windows.Forms.Label();
-            this.lbl_rev_port = new System.Windows.Forms.Label();
-            this.lbl_sed_port = new System.Windows.Forms.Label();
-            this.textBox1 = new System.Windows.Forms.TextBox();
-            this.textBox2 = new System.Windows.Forms.TextBox();
-            this.textBox3 = new System.Windows.Forms.TextBox();
+            this.tBoxIP = new System.Windows.Forms.TextBox();
             this.btn_cnt = new System.Windows.Forms.Button();
             this.btn_dcnt = new System.Windows.Forms.Button();
-            this.btn_spk = new System.Windows.Forms.Button();
-            this.textBox5 = new System.Windows.Forms.TextBox();
-            this.textBox6 = new System.Windows.Forms.TextBox();
-            this.lbl_test = new System.Windows.Forms.Label();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
+            this.lbl_status = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // lpl_ip
@@ -51,53 +45,19 @@
             this.lpl_ip.TabIndex = 0;
             this.lpl_ip.Text = "상대방 IP";
             // 
-            // lbl_rev_port
+            // tBoxIP
             // 
-            this.lbl_rev_port.AutoSize = true;
-            this.lbl_rev_port.Location = new System.Drawing.Point(12, 45);
-            this.lbl_rev_port.Name = "lbl_rev_port";
-            this.lbl_rev_port.Size = new System.Drawing.Size(57, 12);
-            this.lbl_rev_port.TabIndex = 1;
-            this.lbl_rev_port.Text = "수신 포트";
-            // 
-            // lbl_sed_port
-            // 
-            this.lbl_sed_port.AutoSize = true;
-            this.lbl_sed_port.Location = new System.Drawing.Point(12, 83);
-            this.lbl_sed_port.Name = "lbl_sed_port";
-            this.lbl_sed_port.Size = new System.Drawing.Size(57, 12);
-            this.lbl_sed_port.TabIndex = 2;
-            this.lbl_sed_port.Text = "송신 포트";
-            // 
-            // textBox1
-            // 
-            this.textBox1.Location = new System.Drawing.Point(84, 12);
-            this.textBox1.Name = "textBox1";
-            this.textBox1.Size = new System.Drawing.Size(178, 21);
-            this.textBox1.TabIndex = 3;
-            this.textBox1.Text = "10.73.43.229";
-            // 
-            // textBox2
-            // 
-            this.textBox2.Location = new System.Drawing.Point(84, 42);
-            this.textBox2.Name = "textBox2";
-            this.textBox2.Size = new System.Drawing.Size(78, 21);
-            this.textBox2.TabIndex = 4;
-            this.textBox2.Text = "3000";
-            // 
-            // textBox3
-            // 
-            this.textBox3.Location = new System.Drawing.Point(84, 80);
-            this.textBox3.Name = "textBox3";
-            this.textBox3.Size = new System.Drawing.Size(78, 21);
-            this.textBox3.TabIndex = 5;
-            this.textBox3.Text = "4000";
+            this.tBoxIP.Location = new System.Drawing.Point(84, 12);
+            this.tBoxIP.Name = "tBoxIP";
+            this.tBoxIP.Size = new System.Drawing.Size(178, 21);
+            this.tBoxIP.TabIndex = 3;
+            this.tBoxIP.Text = "127.0.0.1";
             // 
             // btn_cnt
             // 
-            this.btn_cnt.Location = new System.Drawing.Point(24, 132);
+            this.btn_cnt.Location = new System.Drawing.Point(14, 107);
             this.btn_cnt.Name = "btn_cnt";
-            this.btn_cnt.Size = new System.Drawing.Size(75, 23);
+            this.btn_cnt.Size = new System.Drawing.Size(119, 23);
             this.btn_cnt.TabIndex = 6;
             this.btn_cnt.Text = "Connect";
             this.btn_cnt.UseVisualStyleBackColor = true;
@@ -105,69 +65,49 @@
             // 
             // btn_dcnt
             // 
-            this.btn_dcnt.Location = new System.Drawing.Point(105, 132);
+            this.btn_dcnt.Location = new System.Drawing.Point(142, 107);
             this.btn_dcnt.Name = "btn_dcnt";
-            this.btn_dcnt.Size = new System.Drawing.Size(99, 23);
+            this.btn_dcnt.Size = new System.Drawing.Size(123, 23);
             this.btn_dcnt.TabIndex = 7;
             this.btn_dcnt.Text = "Disconnect";
             this.btn_dcnt.UseVisualStyleBackColor = true;
             this.btn_dcnt.Click += new System.EventHandler(this.btn_dcnt_Click);
             // 
-            // btn_spk
+            // checkBox1
             // 
-            this.btn_spk.Location = new System.Drawing.Point(24, 162);
-            this.btn_spk.Name = "btn_spk";
-            this.btn_spk.Size = new System.Drawing.Size(238, 88);
-            this.btn_spk.TabIndex = 8;
-            this.btn_spk.Text = "Speaking";
-            this.btn_spk.UseVisualStyleBackColor = true;
-            this.btn_spk.MouseDown += new System.Windows.Forms.MouseEventHandler(this.btn_spk_MouseDown);
-            this.btn_spk.MouseUp += new System.Windows.Forms.MouseEventHandler(this.btn_spk_MouseUp);
+            this.checkBox1.Appearance = System.Windows.Forms.Appearance.Button;
+            this.checkBox1.Location = new System.Drawing.Point(12, 136);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(253, 76);
+            this.checkBox1.TabIndex = 14;
+            this.checkBox1.Text = "Speak";
+            this.checkBox1.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
             // 
-            // textBox5
+            // lbl_status
             // 
-            this.textBox5.Location = new System.Drawing.Point(169, 42);
-            this.textBox5.Name = "textBox5";
-            this.textBox5.Size = new System.Drawing.Size(93, 21);
-            this.textBox5.TabIndex = 11;
-            this.textBox5.Text = "5000";
-            // 
-            // textBox6
-            // 
-            this.textBox6.Location = new System.Drawing.Point(169, 80);
-            this.textBox6.Name = "textBox6";
-            this.textBox6.Size = new System.Drawing.Size(93, 21);
-            this.textBox6.TabIndex = 12;
-            this.textBox6.Text = "6000";
-            // 
-            // lbl_test
-            // 
-            this.lbl_test.AutoSize = true;
-            this.lbl_test.Location = new System.Drawing.Point(13, 255);
-            this.lbl_test.Name = "lbl_test";
-            this.lbl_test.Size = new System.Drawing.Size(38, 12);
-            this.lbl_test.TabIndex = 13;
-            this.lbl_test.Text = "label1";
+            this.lbl_status.AutoSize = true;
+            this.lbl_status.Location = new System.Drawing.Point(157, 215);
+            this.lbl_status.Name = "lbl_status";
+            this.lbl_status.Size = new System.Drawing.Size(108, 12);
+            this.lbl_status.TabIndex = 15;
+            this.lbl_status.Text = "Connection Status";
+            this.lbl_status.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
             // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(277, 393);
-            this.Controls.Add(this.lbl_test);
-            this.Controls.Add(this.textBox6);
-            this.Controls.Add(this.textBox5);
-            this.Controls.Add(this.btn_spk);
+            this.ClientSize = new System.Drawing.Size(277, 236);
+            this.Controls.Add(this.lbl_status);
+            this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.btn_dcnt);
             this.Controls.Add(this.btn_cnt);
-            this.Controls.Add(this.textBox3);
-            this.Controls.Add(this.textBox2);
-            this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.lbl_sed_port);
-            this.Controls.Add(this.lbl_rev_port);
+            this.Controls.Add(this.tBoxIP);
             this.Controls.Add(this.lpl_ip);
             this.Name = "Form1";
-            this.Text = "Form1";
+            this.Text = "WalkieTalkie";
             this.Closing += new System.ComponentModel.CancelEventHandler(this.Form1_Closing_1);
             this.ResumeLayout(false);
             this.PerformLayout();
@@ -177,17 +117,11 @@
         #endregion
 
         private System.Windows.Forms.Label lpl_ip;
-        private System.Windows.Forms.Label lbl_rev_port;
-        private System.Windows.Forms.Label lbl_sed_port;
-        private System.Windows.Forms.TextBox textBox1;
-        private System.Windows.Forms.TextBox textBox2;
-        private System.Windows.Forms.TextBox textBox3;
+        private System.Windows.Forms.TextBox tBoxIP;
         private System.Windows.Forms.Button btn_cnt;
         private System.Windows.Forms.Button btn_dcnt;
-        private System.Windows.Forms.Button btn_spk;
-        private System.Windows.Forms.TextBox textBox5;
-        private System.Windows.Forms.TextBox textBox6;
-        private System.Windows.Forms.Label lbl_test;
+        private System.Windows.Forms.CheckBox checkBox1;
+        private System.Windows.Forms.Label lbl_status;
     }
 }
 

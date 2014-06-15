@@ -153,8 +153,9 @@ namespace Voice
 					m_Finished = true;
 					if (m_WaveIn != IntPtr.Zero)
 						WaveNative.waveInReset(m_WaveIn);
-					WaitForAllBuffers();
-					m_Thread.Join();
+					//WaitForAllBuffers();
+                    m_Thread.Abort();
+					//m_Thread.Join();
 					m_DoneProc = null;
 					FreeBuffers();
 					if (m_WaveIn != IntPtr.Zero)
@@ -162,7 +163,7 @@ namespace Voice
 				}
 				finally
 				{
-					m_Thread = null;
+					//m_Thread = null;
 					m_WaveIn = IntPtr.Zero;
 				}
 			GC.SuppressFinalize(this);
